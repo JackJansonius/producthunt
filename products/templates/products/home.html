@@ -5,18 +5,38 @@
 {% for product in products.all %}
 <div class="row pt-3">
   <div class="col-2" onclick="window.location='{% url 'detail' product.id %}';" style="cursor: pointer;">
-    <img src="{{ product.icon.url }}" class="img-fluid" />
+    <img src="{{ product.icon.url }}" class="img-fluid"/>
   </div>
   <div class="col-6" onclick="window.location='{% url 'detail' product.id %}';" style="cursor: pointer;">
     <h1>{{ product.title }}</h1>
     <p>{{ product.summary }}</p>
   </div>
-  <div class="col-4">
-    <a href="javascript:{document.getElementById('upvote{{ product.id }}').submit()}"><button class="btn btn-primary btn-lg btn-block"> Upvote {{ product.votes_total }}</button></a>
+  <div class="col-2">
+    <br/>
+    {% if user == product.hunter %}
+    <a>
+      <button class="btn btn-secondary btn-lg btn-block" title="This is your post" disabled>
+        Upvote: {{ product.votes_total }}
+      </button>
+    </a>
+    {% elif user in product.voters.all %}
+    <a>
+      <button class="btn btn-secondary btn-lg btn-block" title="Already voted" disabled>
+        Upvote: {{ product.votes_total }}
+      </button>
+    </a>
+    {% else %}
+    <a href="javascript:{document.getElementById('upvote_home{{ product.id }}').submit()}">
+      <button class="btn btn-primary btn-lg btn-block">
+        Upvote: {{ product.votes_total }}
+      </button>
+    </a>
+    {% endif %}
+
   </div>
 </div>
 
-<form id="upvote{{ product.id }}" method="POST" action="{% url 'upvote' product.id %}">
+<form id="upvote_home{{ product.id }}" method="POST" action="{% url 'upvote_home' product.id %}">
   {% csrf_token%}
   <input type="hidden">
 </form>

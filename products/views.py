@@ -6,7 +6,7 @@ from django.utils import timezone
 # Create your views here.
 
 def home(request):
-    products = Product.objects
+    products = Product.objects.all().order_by('-votes_total')
     return render(request, 'products/home.html',{'products':products})
 
 
@@ -38,7 +38,12 @@ def create(request):
 
 def detail(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
-    return render(request, 'products/detail.html',{'product':product})
+    return render(request, 'products/detail.html', {'product': product})
+
+    # if request.user not in product.voters.all():
+    #     return render(request, 'products/detail.html',{'product':product})
+    # else:
+    #     return render(request, 'products/detail.html', {'product': product, 'error': "Voted"})
 
 
 @login_required(login_url="/accounts/signup")
@@ -46,5 +51,20 @@ def upvote(request, product_id):
     if request.method == 'POST':
         product = get_object_or_404(Product, pk=product_id)
         product.votes_total += 1
+        product.voters.add(request.user)
         product.save()
         return redirect('/products/' + str(product.id))
+
+
+@login_required(login_url="/accounts/signup")
+def upvote_home(request, product_id):
+    if request.method == "POST":
+        product = get_object_or_404(Product, pk=product_id)
+        if request.user not in product.voters.all():
+            product.votes_total += 1
+            product.voters.add(request.user)
+            product.save()
+
+        return redirect('home')
+
+
